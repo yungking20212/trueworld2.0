@@ -107,6 +107,10 @@ struct SettingsView: View {
                                     SettingsRow(icon: "lock.shield.fill", title: "Privacy Control", subtitle: "Cloakin, Visibility & Blocking", iconColor: .cyan)
                                 }
                                 
+                                NavigationLink(destination: CommunityGuidelinesView()) {
+                                    SettingsRow(icon: "list.bullet.rectangle.fill", title: "Community Guidelines", subtitle: "Neural Integrity Protocols", iconColor: .purple)
+                                }
+                                
                                 NavigationLink(destination: ReportProblemView()) {
                                     SettingsRow(icon: "exclamationmark.bubble.fill", title: "Report a Disturbance", subtitle: "Flag bugs or community violations", iconColor: .orange)
                                 }
@@ -217,15 +221,16 @@ struct SettingsView: View {
             
             // Stats Bar
             HStack {
-                statItem(label: "Followers", value: "\(viewModel.userProfile?.followerCount ?? 0)")
+                statItem(label: "Followers", value: "\(viewModel.userProfile?.followerCount ?? 0)", color: .cyan)
                 Divider().frame(height: 20).background(Color.white.opacity(0.1))
-                statItem(label: "Following", value: "\(viewModel.userProfile?.followingCount ?? 0)")
+                statItem(label: "Following", value: "\(viewModel.userProfile?.followingCount ?? 0)", color: .purple)
                 Divider().frame(height: 20).background(Color.white.opacity(0.1))
-                statItem(label: "Neural XP", value: "\(viewModel.userProfile?.xp ?? 0)")
+                statItem(label: "Neural XP", value: "\(viewModel.userProfile?.xp ?? 0)", color: .orange)
             }
-            .padding(.vertical, 12)
-            .background(Color.white.opacity(0.05))
+            .padding(.vertical, 16)
+            .background(Color.white.opacity(0.03))
             .cornerRadius(16)
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.white.opacity(0.05), lineWidth: 1))
         }
         .padding(24)
         .background(.ultraThinMaterial.opacity(0.2))
@@ -234,11 +239,11 @@ struct SettingsView: View {
         .padding(.horizontal, 20)
     }
     
-    private func statItem(label: String, value: String) -> some View {
+    private func statItem(label: String, value: String, color: Color = .white) -> some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(.system(size: 14, weight: .black, design: .monospaced))
-                .foregroundColor(.white)
+                .foregroundColor(color)
             Text(label.uppercased())
                 .font(.system(size: 9, weight: .bold))
                 .foregroundColor(.white.opacity(0.4))
