@@ -16,6 +16,25 @@ interface Video {
   author_id?: string;
 }
 
+interface HotZone {
+  name: string;
+  latitude: number;
+  longitude: number;
+  intensity: number;
+  trending_count: number;
+  color: string;
+  controller_handle: string;
+}
+
+interface CountryDominance {
+  country_code: string;
+  latitude: number;
+  longitude: number;
+  controller_handle: string;
+  dominance_score: number;
+  flag_emoji: string;
+}
+
 type TabType = "HOME" | "EYE" | "NOTIF" | "PROFILE";
 
 export default function Home() {
@@ -86,6 +105,39 @@ export default function Home() {
       }
     });
 
+    // Real-Time Neural Sync: Listen for Video Updates (Likes/Comments/Shares)
+    const videoChannel = supabase
+      .channel('video_sync')
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'videos' },
+        (payload) => {
+          if (payload.new) {
+            setVideos((prev) =>
+              prev.map((v) => (v.id === payload.new.id ? { ...v, ...payload.new } : v))
+            );
+          }
+        }
+      )
+      .subscribe();
+
+    // Real-Time Profile Sync: Listen for XP/Follower changes
+    let profileChannel: any = null;
+    if (session?.user?.id) {
+      profileChannel = supabase
+        .channel(`profile_sync_${session.user.id}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${session.user.id}` },
+          (payload) => {
+            if (payload.new) {
+              setUserProfile(payload.new);
+            }
+          }
+        )
+        .subscribe();
+    }
+
     // Failsafe: Force stop loading after 8s
     const failsafe = setTimeout(() => {
       if (mounted) setLoading(false);
@@ -94,9 +146,30 @@ export default function Home() {
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      supabase.removeChannel(videoChannel);
+      if (profileChannel) supabase.removeChannel(profileChannel);
       clearTimeout(failsafe);
     };
-  }, [fetchVideos, fetchUserProfile]);
+  }, [fetchVideos, fetchUserProfile, session?.user?.id]);
+
+  const handleLike = async (videoId: string, isLiked: boolean) => {
+    if (!session) {
+      router.push('/auth');
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        await supabase.from('likes').delete().match({ user_id: session.user.id, video_id: videoId });
+        await supabase.rpc('decrement_like_count', { v_id: videoId });
+      } else {
+        await supabase.from('likes').insert({ user_id: session.user.id, video_id: videoId });
+        await supabase.rpc('increment_like_count', { v_id: videoId });
+      }
+    } catch (err) {
+      console.error("Neural Like Fail:", err);
+    }
+  };
 
   const handlePreRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,7 +216,12 @@ export default function Home() {
             <div className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
               {videos.length > 0 ? (
                 videos.map((video) => (
-                  <VideoCard key={video.id} video={video} />
+                  <VideoCard
+                    key={video.id}
+                    video={video}
+                    currentUserId={session.user.id}
+                    onLike={(isLiked) => handleLike(video.id, isLiked)}
+                  />
                 ))
               ) : (
                 <div className="h-screen w-full flex flex-col items-center justify-center text-white gap-4 italic opacity-30">
@@ -155,21 +233,7 @@ export default function Home() {
           )}
 
           {activeTab === "EYE" && (
-            <div className="h-full w-full bg-zinc-950 flex flex-col items-center justify-center relative overflow-hidden">
-              {/* High-Fidelity Map Placeholder */}
-              <div className="absolute inset-0 z-0 opacity-20">
-                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale invert"></div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black"></div>
-              </div>
-              <div className="relative z-10 text-center space-y-6">
-                <div className="w-20 h-20 mx-auto rounded-full bg-red-600/10 border border-red-600/30 flex items-center justify-center animate-pulse">
-                  <span className="text-4xl">🌍</span>
-                </div>
-                <h2 className="text-2xl font-black text-white italic uppercase tracking-[0.2em]">Eye World Web_Alpha</h2>
-                <p className="text-zinc-500 text-xs font-bold tracking-widest max-w-xs uppercase">Tactical Map Synchronization Pending Phase 3 Deployment</p>
-                <button className="px-8 py-3 bg-red-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-full shadow-2xl shadow-red-600/30">Initialize Link</button>
-              </div>
-            </div>
+            <EyeWorld session={session} />
           )}
 
           {activeTab === "PROFILE" && (
@@ -316,6 +380,129 @@ export default function Home() {
   );
 }
 
+function EyeWorld({ session }: { session: any }) {
+  const [hotZones, setHotZones] = useState<HotZone[]>([]);
+  const [countryDominance, setCountryDominance] = useState<CountryDominance[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchEyeWorldData() {
+      try {
+        const [{ data: zones }, { data: countries }] = await Promise.all([
+          supabase.rpc('get_active_hot_zones'),
+          supabase.rpc('get_country_dominance')
+        ]);
+        if (zones) setHotZones(zones);
+        if (countries) setCountryDominance(countries);
+      } catch (err) {
+        console.error("Eye World Link Fail:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchEyeWorldData();
+  }, []);
+
+  return (
+    <div className="h-full w-full bg-zinc-950 relative overflow-hidden flex flex-col items-center justify-center">
+      {/* Tactical Grid Background */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale invert scale-110 blur-sm"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black"></div>
+        <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '50px 50px' }}></div>
+      </div>
+
+      {loading ? (
+        <div className="relative z-10 animate-pulse text-[10px] font-black text-red-600 uppercase tracking-[0.5em] italic">Synchronizing Tactical Data...</div>
+      ) : (
+        <div className="relative z-10 w-full max-w-6xl px-8 flex flex-col md:flex-row gap-8 items-center justify-center">
+          {/* Active Hot Zones List (Tactical HUD Style) */}
+          <div className="w-full md:w-80 bg-black/40 backdrop-blur-3xl border border-white/5 p-6 rounded-[32px] space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <span className="text-[10px] font-black text-white uppercase italic tracking-widest">Active_Zones</span>
+              <span className="text-[10px] font-black text-red-600 animate-pulse">LIVE</span>
+            </div>
+            <div className="space-y-4">
+              {hotZones.length > 0 ? hotZones.map((zone, i) => (
+                <div key={i} className="flex items-center justify-between group cursor-pointer">
+                  <div>
+                    <div className="text-[10px] font-black text-white italic group-hover:text-red-500 transition-colors uppercase">{zone.name}</div>
+                    <div className="text-[8px] font-bold text-zinc-500 uppercase tracking-tighter">Controller: @{zone.controller_handle}</div>
+                  </div>
+                  <div className="h-1 w-12 bg-zinc-800 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-600" style={{ width: `${zone.intensity * 100}%` }}></div>
+                  </div>
+                </div>
+              )) : (
+                <div className="text-[8px] font-black text-zinc-600 uppercase italic">No Active Deployments Detected</div>
+              )}
+            </div>
+          </div>
+
+          {/* Central Tactical Display */}
+          <div className="relative flex-1 aspect-square max-w-[500px] flex items-center justify-center">
+            <div className="absolute inset-0 border border-red-600/10 rounded-full animate-ping opacity-20"></div>
+            <div className="absolute inset-10 border border-white/5 rounded-full"></div>
+            <div className="absolute inset-20 border border-white/5 rounded-full animate-spin-slow"></div>
+
+            {/* Dynamic Markers Placeholder */}
+            <div className="relative z-20 text-center">
+              <div className="w-24 h-24 mx-auto rounded-full bg-red-600/10 border border-red-600/50 flex items-center justify-center shadow-[0_0_50px_rgba(220,38,38,0.2)]">
+                <span className="text-4xl animate-pulse">🌍</span>
+              </div>
+              <div className="mt-6 space-y-1">
+                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">Planetary_Grid</h3>
+                <p className="text-[8px] font-black text-zinc-500 uppercase tracking-[0.5em] italic">V3.0 Orbital Visualization</p>
+              </div>
+            </div>
+
+            {/* Orbital Nodes */}
+            {countryDominance.map((c, i) => (
+              <div key={i} className="absolute" style={{ transform: `rotate(${i * 120}deg) translateY(-180px) rotate(-${i * 120}deg)` }}>
+                <div className="bg-black/80 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-2xl flex items-center gap-3 shadow-2xl">
+                  <span className="text-lg">{c.flag_emoji}</span>
+                  <div className="text-left">
+                    <div className="text-[8px] font-black text-white uppercase italic">{c.country_code}</div>
+                    <div className="text-[6px] font-bold text-red-500 uppercase tracking-tighter">@{c.controller_handle}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tactical Stats HUD */}
+          <div className="w-full md:w-80 bg-black/40 backdrop-blur-3xl border border-white/5 p-6 rounded-[32px] space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <span className="text-[10px] font-black text-white uppercase italic tracking-widest">Global_Status</span>
+            </div>
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-[8px] font-black uppercase text-zinc-500 italic">
+                  <span>Neural_Bandwidth</span>
+                  <span>98.2%</span>
+                </div>
+                <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-cyan-500" style={{ width: '98.2%' }}></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-[8px] font-black uppercase text-zinc-500 italic">
+                  <span>Planetary_Sync</span>
+                  <span>ACTIVE</span>
+                </div>
+                <div className="h-1 bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-green-500" style={{ width: '100%' }}></div>
+                </div>
+              </div>
+              <button className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[8px] font-black text-white uppercase tracking-[0.3em] hover:bg-white/10 transition-all italic">Launch Orbital Scan</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function NavButton({ icon, label, active, onClick }: { icon: string; label: string; active?: boolean; onClick: () => void }) {
   return (
     <button
@@ -329,15 +516,43 @@ function NavButton({ icon, label, active, onClick }: { icon: string; label: stri
   );
 }
 
-function VideoCard({ video }: { video: Video }) {
+function VideoCard({
+  video,
+  currentUserId,
+  onLike
+}: {
+  video: Video;
+  currentUserId?: string;
+  onLike?: (isLiked: boolean) => void;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(video.likes);
+
+  useEffect(() => {
+    setLikeCount(video.likes);
+  }, [video.likes]);
+
+  useEffect(() => {
+    async function checkLikeStatus() {
+      if (currentUserId && video.id) {
+        const { data } = await supabase
+          .from('likes')
+          .select('*')
+          .match({ user_id: currentUserId, video_id: video.id })
+          .single();
+        setIsLiked(!!data);
+      }
+    }
+    checkLikeStatus();
+  }, [currentUserId, video.id]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          videoRef.current?.play();
+          videoRef.current?.play().catch(() => { });
           setIsPlaying(true);
         } else {
           videoRef.current?.pause();
@@ -356,10 +571,18 @@ function VideoCard({ video }: { video: Video }) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play();
+        videoRef.current.play().catch(() => { });
       }
       setIsPlaying(!isPlaying);
     }
+  };
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const newIsLiked = !isLiked;
+    setIsLiked(newIsLiked);
+    setLikeCount(prev => newIsLiked ? prev + 1 : Math.max(0, prev - 1));
+    onLike?.(isLiked); // Call API with OLD state
   };
 
   return (
@@ -392,11 +615,14 @@ function VideoCard({ video }: { video: Video }) {
         </div>
 
         <div className="flex flex-col gap-8 items-center flex-shrink-0 pointer-events-auto">
-          <div className="flex flex-col items-center group cursor-pointer">
-            <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-red-600/30 group-hover:scale-110 active:scale-95 transition-all">
-              <span className="text-2xl">❤️</span>
+          <div
+            onClick={handleLikeClick}
+            className="flex flex-col items-center group cursor-pointer"
+          >
+            <div className={`w-14 h-14 ${isLiked ? 'bg-red-600' : 'bg-white/5 backdrop-blur-2xl border border-white/10'} rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 active:scale-95 transition-all`}>
+              <span className="text-2xl">{isLiked ? '❤️' : '🤍'}</span>
             </div>
-            <span className="text-[10px] font-black text-white mt-3 italic tracking-widest">{video.likes}</span>
+            <span className="text-[10px] font-black text-white mt-3 italic tracking-widest">{likeCount}</span>
           </div>
 
           <div className="flex flex-col items-center group cursor-pointer">
