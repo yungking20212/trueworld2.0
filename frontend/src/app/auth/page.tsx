@@ -21,7 +21,7 @@ export default function AuthPage() {
             if (isSignUp) {
                 const { error } = await supabase.auth.signUp({ email, password });
                 if (error) throw error;
-                setMessage({ type: "success", text: "Check your email for the confirmation link!" });
+                setMessage({ type: "success", text: "NEURAL_CONFIRMATION_SENT" });
                 setIsSignUp(false);
             } else {
                 const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -29,83 +29,88 @@ export default function AuthPage() {
                 router.push("/");
             }
         } catch (error: any) {
-            setMessage({ type: "error", text: error.message });
+            setMessage({ type: "error", text: error.message.toUpperCase() });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 bg-gradient-to-b from-black to-zinc-900">
-            <div className="w-full max-w-md space-y-8">
-                <div className="text-center">
-                    <h1 className="text-4xl font-extrabold text-white tracking-tight mb-2">Trueworld 2.0</h1>
-                    <p className="text-zinc-400">
-                        {isSignUp ? "Create your account" : "Sign in to your account"}
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
+            {/* Background Aesthetics */}
+            <div className="absolute inset-0 z-0">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/5 rounded-full blur-[100px]"></div>
+                <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '30px 30px' }}></div>
+            </div>
+
+            <div className="w-full max-w-md space-y-12 relative z-10 text-center">
+                <div className="space-y-4">
+                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none">
+                        AUTH<span className="text-red-600">NODE</span>
+                    </h1>
+                    <p className="text-[10px] font-black tracking-[0.5em] text-zinc-500 uppercase italic">
+                        Planetary Access Protocol
                     </p>
                 </div>
 
-                <form onSubmit={handleAuth} className="mt-8 space-y-6 bg-zinc-800/50 p-8 rounded-2xl border border-zinc-700 shadow-xl backdrop-blur-sm">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-sm font-medium text-zinc-300 block mb-2">Email address</label>
-                            <input
-                                type="email"
-                                required
-                                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
-                                placeholder="you@example.com"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
+                <div className="bg-zinc-900/40 backdrop-blur-3xl border border-white/5 p-10 rounded-[40px] shadow-2xl">
+                    <form onSubmit={handleAuth} className="space-y-6">
+                        <div className="space-y-4 text-left">
+                            <div>
+                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-3 ml-2 italic">Neural Node ID (Email)</label>
+                                <input
+                                    type="email"
+                                    required
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white/10 transition-all uppercase tracking-widest"
+                                    placeholder="YOU@EXAMPLE.COM"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[10px] font-black text-white/40 uppercase tracking-widest block mb-3 ml-2 italic">Access Key (Password)</label>
+                                <input
+                                    type="password"
+                                    required
+                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-bold focus:outline-none focus:ring-2 focus:ring-red-600 focus:bg-white/10 transition-all uppercase tracking-widest"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="text-sm font-medium text-zinc-300 block mb-2">Password</label>
-                            <input
-                                type="password"
-                                required
-                                className="w-full bg-zinc-900 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-                    </div>
 
-                    {message && (
-                        <div className={`p-4 rounded-xl text-sm ${message.type === "error" ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-green-500/10 text-green-500 border border-green-500/20"}`}>
-                            {message.text}
-                        </div>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-xl transition-all shadow-lg shadow-red-600/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {loading ? (
-                            <span className="flex items-center justify-center">
-                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Processing...
-                            </span>
-                        ) : (
-                            isSignUp ? "Create Account" : "Sign In"
+                        {message && (
+                            <div className={`p-4 rounded-2xl text-[10px] font-black tracking-widest uppercase italic ${message.type === "error" ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-green-500/10 text-green-500 border border-green-500/20"}`}>
+                                {message.text}
+                            </div>
                         )}
-                    </button>
-                </form>
 
-                <div className="text-center">
-                    <button
-                        onClick={() => {
-                            setIsSignUp(!isSignUp);
-                            setMessage(null);
-                        }}
-                        className="text-zinc-400 hover:text-white text-sm transition-colors"
-                    >
-                        {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
-                    </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-red-600 hover:bg-red-700 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-[0.5em] transition-all shadow-xl shadow-red-600/20 active:scale-95 disabled:opacity-50"
+                        >
+                            {loading ? "SYNCHRONIZING..." : (isSignUp ? "INITIALIZE_NODE" : "ESTABLISH_LINK")}
+                        </button>
+                    </form>
+
+                    <div className="mt-10 pt-8 border-t border-white/5">
+                        <button
+                            onClick={() => {
+                                setIsSignUp(!isSignUp);
+                                setMessage(null);
+                            }}
+                            className="text-[10px] font-black tracking-[0.3em] text-zinc-500 hover:text-white uppercase transition-colors italic"
+                        >
+                            {isSignUp ? "Already In Segment? established Link" : "No Node Assigned? Initialize"}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex flex-col gap-2 opacity-20">
+                    <span className="text-[8px] font-black text-white tracking-[1em] uppercase block">Secure Planetary Bridge</span>
+                    <span className="text-[8px] font-black text-white tracking-[0.5em] uppercase block">0x00A1-44-BEEF</span>
                 </div>
             </div>
         </div>
