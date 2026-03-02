@@ -1,0 +1,13 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    stripe (18.4.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  stripe
+
+BUNDLED WITH
+   1.17.2

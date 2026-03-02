@@ -1,0 +1,12 @@
+{
+    "encoder": "H264_NVENC",
+    "resolution": "1920x1080",
+    "fps": 60,
+    "bitrate": "15000k",
+    "webrtc": {
+        "iceServers": [],
+        "sdpSemantics": "unified-plan",
+        "bundlePolicy": "max-bundle"
+    },
+    "low_latency": true
+}

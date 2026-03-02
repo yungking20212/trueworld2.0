@@ -1,0 +1,28 @@
+{
+    "passes": {
+        "pass_glitch": {
+            "outputs": {
+                "color": "COLOR"
+            },
+            "inputs": {
+                "colorSampler": "COLOR",
+                "time": "time_symbol",
+                "intensity": "intensity_symbol"
+            },
+            "metalVertexShader": "glitchVertex",
+            "metalFragmentShader": "glitchFragment",
+            "draw": "DRAW_QUAD"
+        }
+    },
+    "sequence": [
+        "pass_glitch"
+    ],
+    "symbols": {
+        "time_symbol": {
+            "type": "float"
+        },
+        "intensity_symbol": {
+            "type": "float"
+        }
+    }
+}

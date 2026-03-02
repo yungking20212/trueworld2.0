@@ -1,0 +1,35 @@
+{
+    "registry": "AI Cloud Gaming Virtual Registry",
+    "version": "1.0.0",
+    "images": [
+        {
+            "gameId": "vantage-racing-3d",
+            "image": "trueworld-cloud-vantage-racing",
+            "tag": "v1.2.0-neural",
+            "requirements": {
+                "gpu": "NVIDIA L40",
+                "vram": "8GB",
+                "arch": "linux-vulkan"
+            },
+            "features": [
+                "h265_encoding",
+                "neural_physics_bridge",
+                "input_forwarding_v2"
+            ]
+        },
+        {
+            "gameId": "logic-pulse-combat",
+            "image": "trueworld-cloud-logic-pulse",
+            "tag": "v0.9.5-alpha",
+            "requirements": {
+                "gpu": "NVIDIA A10",
+                "vram": "4GB",
+                "arch": "linux-vulkan"
+            },
+            "features": [
+                "low_latency_mode",
+                "ai_npc_orchestrator"
+            ]
+        }
+    ]
+}

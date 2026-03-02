@@ -6,6 +6,22 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AD1B39872F4E77C900E761FD /* Auth in Frameworks */ = {isa = PBXBuildFile; productRef = AD1B39862F4E77C900E761FD /* Auth */; };
+		AD1B39892F4E77C900E761FD /* Functions in Frameworks */ = {isa = PBXBuildFile; productRef = AD1B39882F4E77C900E761FD /* Functions */; };
+		AD1B398B2F4E77C900E761FD /* PostgREST in Frameworks */ = {isa = PBXBuildFile; productRef = AD1B398A2F4E77C900E761FD /* PostgREST */; };
+		AD1B398D2F4E77C900E761FD /* Realtime in Frameworks */ = {isa = PBXBuildFile; productRef = AD1B398C2F4E77C900E761FD /* Realtime */; };
+		AD1B398F2F4E77C900E761FD /* Storage in Frameworks */ = {isa = PBXBuildFile; productRef = AD1B398E2F4E77C900E761FD /* Storage */; };
+		AD1B39A02F4E7B9D00E761FD /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = AD1B399F2F4E7B9D00E761FD /* Supabase */; };
+		AD1E34212F5181F80021B2FD /* WebRTC in Frameworks */ = {isa = PBXBuildFile; productRef = AD1E34202F5181F80021B2FD /* WebRTC */; };
+		ADCC44A82F551244007D4C69 /* Stripe in Frameworks */ = {isa = PBXBuildFile; productRef = ADCC44A72F551244007D4C69 /* Stripe */; };
+		ADCC44AA2F551244007D4C69 /* StripeApplePay in Frameworks */ = {isa = PBXBuildFile; productRef = ADCC44A92F551244007D4C69 /* StripeApplePay */; };
+		ADCC44AC2F551244007D4C69 /* StripeCardScan in Frameworks */ = {isa = PBXBuildFile; productRef = ADCC44AB2F551244007D4C69 /* StripeCardScan */; };
+		ADCC44AE2F551244007D4C69 /* StripeConnect in Frameworks */ = {isa = PBXBuildFile; productRef = ADCC44AD2F551244007D4C69 /* StripeConnect */; };
+		ADCC44B02F551244007D4C69 /* StripeFinancialConnections in Frameworks */ = {isa = PBXBuildFile; productRef = ADCC44AF2F551244007D4C69 /* StripeFinancialConnections */; };
+		ADCC44B22F5518D6007D4C69 /* StripePaymentSheet in Frameworks */ = {isa = PBXBuildFile; productRef = ADCC44B12F5518D6007D4C69 /* StripePaymentSheet */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		AD1B39772F4E778400E761FD /* trueworld2.0.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = trueworld2.0.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +39,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD1B398B2F4E77C900E761FD /* PostgREST in Frameworks */,
+				ADCC44B22F5518D6007D4C69 /* StripePaymentSheet in Frameworks */,
+				ADCC44B02F551244007D4C69 /* StripeFinancialConnections in Frameworks */,
+				AD1B39892F4E77C900E761FD /* Functions in Frameworks */,
+				ADCC44AE2F551244007D4C69 /* StripeConnect in Frameworks */,
+				AD1B39A02F4E7B9D00E761FD /* Supabase in Frameworks */,
+				ADCC44AA2F551244007D4C69 /* StripeApplePay in Frameworks */,
+				AD1E34212F5181F80021B2FD /* WebRTC in Frameworks */,
+				AD1B39872F4E77C900E761FD /* Auth in Frameworks */,
+				ADCC44A82F551244007D4C69 /* Stripe in Frameworks */,
+				AD1B398F2F4E77C900E761FD /* Storage in Frameworks */,
+				ADCC44AC2F551244007D4C69 /* StripeCardScan in Frameworks */,
+				AD1B398D2F4E77C900E761FD /* Realtime in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -33,6 +62,7 @@
 			isa = PBXGroup;
 			children = (
 				AD1B39792F4E778400E761FD /* trueworld2.0 */,
+				AD1B399E2F4E7B9B00E761FD /* Frameworks */,
 				AD1B39782F4E778400E761FD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -43,6 +73,13 @@
 				AD1B39772F4E778400E761FD /* trueworld2.0.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		AD1B399E2F4E7B9B00E761FD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -65,6 +102,19 @@
 			);
 			name = trueworld2.0;
 			packageProductDependencies = (
+				AD1B39862F4E77C900E761FD /* Auth */,
+				AD1B39882F4E77C900E761FD /* Functions */,
+				AD1B398A2F4E77C900E761FD /* PostgREST */,
+				AD1B398C2F4E77C900E761FD /* Realtime */,
+				AD1B398E2F4E77C900E761FD /* Storage */,
+				AD1B399F2F4E7B9D00E761FD /* Supabase */,
+				AD1E34202F5181F80021B2FD /* WebRTC */,
+				ADCC44A72F551244007D4C69 /* Stripe */,
+				ADCC44A92F551244007D4C69 /* StripeApplePay */,
+				ADCC44AB2F551244007D4C69 /* StripeCardScan */,
+				ADCC44AD2F551244007D4C69 /* StripeConnect */,
+				ADCC44AF2F551244007D4C69 /* StripeFinancialConnections */,
+				ADCC44B12F5518D6007D4C69 /* StripePaymentSheet */,
 			);
 			productName = trueworld2.0;
 			productReference = AD1B39772F4E778400E761FD /* trueworld2.0.app */;
@@ -78,10 +128,15 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2620;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 2630;
 				TargetAttributes = {
 					AD1B39762F4E778400E761FD = {
 						CreatedOnToolsVersion = 26.2;
+						SystemCapabilities = {
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -94,6 +149,11 @@
 			);
 			mainGroup = AD1B396E2F4E778400E761FD;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */,
+				AD1E341F2F5181F80021B2FD /* XCRemoteSwiftPackageReference "WebRTC" */,
+				ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = AD1B39782F4E778400E761FD /* Products */;
 			projectDirPath = "";
@@ -184,6 +244,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -241,6 +302,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -251,11 +313,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = trueworld2.0/trueworld2.0.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YX28KZ28AJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "trueworld2-0-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = trueworld2.0;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -283,11 +349,15 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = trueworld2.0/trueworld2.0.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = YX28KZ28AJ;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "trueworld2-0-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = trueworld2.0;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -332,6 +402,101 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = exactVersion;
+				version = 2.5.1;
+			};
+		};
+		AD1E341F2F5181F80021B2FD /* XCRemoteSwiftPackageReference "WebRTC" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stasel/WebRTC.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 141.0.0;
+			};
+		};
+		ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stripe/stripe-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 25.7.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		AD1B39862F4E77C900E761FD /* Auth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Auth;
+		};
+		AD1B39882F4E77C900E761FD /* Functions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Functions;
+		};
+		AD1B398A2F4E77C900E761FD /* PostgREST */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = PostgREST;
+		};
+		AD1B398C2F4E77C900E761FD /* Realtime */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Realtime;
+		};
+		AD1B398E2F4E77C900E761FD /* Storage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Storage;
+		};
+		AD1B399F2F4E7B9D00E761FD /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD1B39852F4E77C900E761FD /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+		AD1E34202F5181F80021B2FD /* WebRTC */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AD1E341F2F5181F80021B2FD /* XCRemoteSwiftPackageReference "WebRTC" */;
+			productName = WebRTC;
+		};
+		ADCC44A72F551244007D4C69 /* Stripe */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			productName = Stripe;
+		};
+		ADCC44A92F551244007D4C69 /* StripeApplePay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			productName = StripeApplePay;
+		};
+		ADCC44AB2F551244007D4C69 /* StripeCardScan */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			productName = StripeCardScan;
+		};
+		ADCC44AD2F551244007D4C69 /* StripeConnect */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			productName = StripeConnect;
+		};
+		ADCC44AF2F551244007D4C69 /* StripeFinancialConnections */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			productName = StripeFinancialConnections;
+		};
+		ADCC44B12F5518D6007D4C69 /* StripePaymentSheet */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ADCC44A62F551244007D4C69 /* XCRemoteSwiftPackageReference "stripe-ios" */;
+			productName = StripePaymentSheet;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AD1B396F2F4E778400E761FD /* Project object */;
 }
