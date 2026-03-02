@@ -16,10 +16,14 @@ interface Video {
   author_id?: string;
 }
 
+type TabType = "HOME" | "EYE" | "NOTIF" | "PROFILE";
+
 export default function Home() {
   const [session, setSession] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabType>("HOME");
   const [preRegisterEmail, setPreRegisterEmail] = useState("");
   const [preRegisterUser, setPreRegisterUser] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -27,22 +31,40 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    async function initAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
+    // Robust Auth Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       if (session) {
         fetchVideos();
+        fetchUserProfile(session.user.id);
       } else {
         setLoading(false);
       }
-    }
-    initAuth();
+    });
+
+    // Initial Session Check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        fetchVideos();
+        fetchUserProfile(session.user.id);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchVideos = async () => {
     const { data, error } = await supabase.from("videos").select("*").limit(10);
     if (!error) setVideos(data || []);
     setLoading(false);
+  };
+
+  const fetchUserProfile = async (userId: string) => {
+    const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
+    if (!error) setUserProfile(data);
   };
 
   const handlePreRegister = async (e: React.FormEvent) => {
@@ -66,7 +88,7 @@ export default function Home() {
       <div className="h-screen w-full bg-black flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-4">
           <div className="h-12 w-12 bg-red-600 rounded-full blur-xl opacity-50"></div>
-          <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase italic">Initializing Neutral Link...</span>
+          <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase italic">Initializing Neural Link...</span>
         </div>
       </div>
     );
@@ -76,23 +98,85 @@ export default function Home() {
   if (session) {
     return (
       <main className="h-screen w-full bg-black overflow-hidden relative">
-        <div className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-          {videos.length > 0 ? (
-            videos.map((video) => (
-              <VideoCard key={video.id} video={video} />
-            ))
-          ) : (
-            <div className="h-screen w-full flex flex-col items-center justify-center text-white gap-4 italic opacity-30">
-              <span>NO_BROADCASTS_DETECTED</span>
-              <button onClick={() => router.push("/auth")} className="text-xs uppercase font-bold tracking-widest border border-white/20 px-6 py-2 rounded-full">Refresh Node</button>
+        <div className="h-full w-full">
+          {activeTab === "HOME" && (
+            <div className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
+              {videos.length > 0 ? (
+                videos.map((video) => (
+                  <VideoCard key={video.id} video={video} />
+                ))
+              ) : (
+                <div className="h-screen w-full flex flex-col items-center justify-center text-white gap-4 italic opacity-30">
+                  <span>NO_BROADCASTS_DETECTED</span>
+                  <button onClick={() => fetchVideos()} className="text-xs uppercase font-bold tracking-widest border border-white/20 px-6 py-2 rounded-full">Refresh Node</button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "EYE" && (
+            <div className="h-full w-full bg-zinc-950 flex flex-col items-center justify-center relative overflow-hidden">
+              {/* High-Fidelity Map Placeholder */}
+              <div className="absolute inset-0 z-0 opacity-20">
+                <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80')] bg-cover bg-center grayscale invert"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black"></div>
+              </div>
+              <div className="relative z-10 text-center space-y-6">
+                <div className="w-20 h-20 mx-auto rounded-full bg-red-600/10 border border-red-600/30 flex items-center justify-center animate-pulse">
+                  <span className="text-4xl">🌍</span>
+                </div>
+                <h2 className="text-2xl font-black text-white italic uppercase tracking-[0.2em]">Eye World Web_Alpha</h2>
+                <p className="text-zinc-500 text-xs font-bold tracking-widest max-w-xs uppercase">Tactical Map Synchronization Pending Phase 3 Deployment</p>
+                <button className="px-8 py-3 bg-red-600 text-white font-black text-[10px] uppercase tracking-[0.3em] rounded-full shadow-2xl shadow-red-600/30">Initialize Link</button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "PROFILE" && (
+            <div className="h-full w-full bg-zinc-950 flex flex-col items-center justify-center">
+              <div className="text-center space-y-6">
+                <div className="w-24 h-24 mx-auto rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden shadow-2xl">
+                  {userProfile?.avatar_url ? (
+                    <img src={userProfile.avatar_url} className="w-full h-full object-cover" alt="" />
+                  ) : (
+                    <span className="text-4xl">👤</span>
+                  )}
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white italic uppercase tracking-[0.1em]">@{userProfile?.username || "NODE_ID"}</h2>
+                  <p className="text-zinc-500 text-[10px] font-black tracking-[0.5em] uppercase italic mt-2">Verified Planetary Resident</p>
+                </div>
+                <div className="flex gap-8 justify-center">
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg font-black text-white">{userProfile?.follower_count || 0}</span>
+                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Followers</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg font-black text-white">{userProfile?.following_count || 0}</span>
+                    <span className="text-[8px] font-black text-zinc-500 uppercase tracking-widest">Following</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => router.push(`/u/${userProfile?.username}`)}
+                  className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-[0.4em] rounded-2xl hover:bg-white/10 transition-all font-bold"
+                >
+                  View Neural Grid
+                </button>
+                <button
+                  onClick={() => supabase.auth.signOut()}
+                  className="block mx-auto text-[8px] font-black text-red-600/50 hover:text-red-500 uppercase tracking-[0.5em] italic transition-colors"
+                >
+                  Terminate Session
+                </button>
+              </div>
             </div>
           )}
         </div>
 
         {/* Neural Navigation Bar (Bottom Center) */}
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-2 bg-zinc-900/60 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-          <NavButton icon="🏠" label="HOME" active onClick={() => { }} />
-          <NavButton icon="🌍" label="EYE" onClick={() => { }} />
+          <NavButton icon="🏠" label="HOME" active={activeTab === "HOME"} onClick={() => setActiveTab("HOME")} />
+          <NavButton icon="🌍" label="EYE" active={activeTab === "EYE"} onClick={() => setActiveTab("EYE")} />
           <div className="relative group mx-2">
             <div className="absolute inset-0 bg-red-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity"></div>
             <button className="relative w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all">
@@ -100,8 +184,8 @@ export default function Home() {
               <div className="absolute -top-1 -right-1 bg-white text-[8px] font-black text-black px-1.5 py-0.5 rounded-md italic">AI</div>
             </button>
           </div>
-          <NavButton icon="🔔" label="NOTIF" onClick={() => { }} />
-          <NavButton icon="👤" label="PROFILE" onClick={() => router.push("/auth")} />
+          <NavButton icon="🔔" label="NOTIF" active={activeTab === "NOTIF"} onClick={() => setActiveTab("NOTIF")} />
+          <NavButton icon="👤" label="PROFILE" active={activeTab === "PROFILE"} onClick={() => setActiveTab("PROFILE")} />
         </div>
       </main>
     );
