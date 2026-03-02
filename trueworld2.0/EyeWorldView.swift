@@ -1035,6 +1035,25 @@ struct TopCreatorDTO: Decodable, Identifiable {
     let daily_rank: Int?
 }
 
+struct HotZoneDTO: Decodable {
+    let name: String
+    let latitude: Double
+    let longitude: Double
+    let intensity: Double
+    let trending_count: Int
+    let color: String
+    let controller_handle: String
+}
+
+struct CountryDominanceDTO: Decodable {
+    let country_code: String
+    let latitude: Double
+    let longitude: Double
+    let controller_handle: String
+    let dominance_score: Double
+    let flag_emoji: String
+}
+
 struct RawStoryMarkerDTO: Decodable {
     let id: UUID
     let latitude: Double?
@@ -1180,21 +1199,39 @@ class EyeWorldViewModel: ObservableObject {
                         )
                     }
                     
-                    // v3 Force Hot Zones Simulation (Real data would be an RPC)
-                    // Upgraded to GTA-style Creator Blocks with Faction Colors
-                    self.hotZones = [
-                        HotZone(name: "NYC_CORE", coordinate: CLLocationCoordinate2D(latitude: 40.7128, longitude: -74.0060), intensity: 0.9, trendingCount: 1420, color: .purple, controller: "ZENITH_ONE"),
-                        HotZone(name: "TOKYO_ZONE", coordinate: CLLocationCoordinate2D(latitude: 35.6762, longitude: 139.6503), intensity: 0.8, trendingCount: 980, color: .blue, controller: "CYBER_GHOST"),
-                        HotZone(name: "DALLAS_HUB", coordinate: CLLocationCoordinate2D(latitude: 32.7767, longitude: -96.7970), intensity: 0.7, trendingCount: 540, color: .green, controller: "VANTAGE_KING"),
-                        HotZone(name: "LOND_SECTOR", coordinate: CLLocationCoordinate2D(latitude: 51.5074, longitude: -0.1278), intensity: 0.85, trendingCount: 720, color: .red, controller: "RAZOR_CREW")
-                    ]
-                    
-                    // v3 Strategic Country Takeovers
-                    self.countryDominance = [
-                        CountryDominance(country: "USA", coordinate: CLLocationCoordinate2D(latitude: 37.0902, longitude: -95.7129), controller: "VANTAGE_KING", dominanceScore: 0.94, flagEmoji: "🇺🇸"),
-                        CountryDominance(country: "JAPAN", coordinate: CLLocationCoordinate2D(latitude: 36.2048, longitude: 138.2529), controller: "CYBER_GHOST", dominanceScore: 0.88, flagEmoji: "🇯🇵"),
-                        CountryDominance(country: "UK", coordinate: CLLocationCoordinate2D(latitude: 55.3781, longitude: -3.4360), controller: "RAZOR_CREW", dominanceScore: 0.82, flagEmoji: "🇬🇧")
-                    ]
+                    // 3. Fetch Real Hot Zones & Country Dominance
+                    do {
+                        let zoneResponse = try await client.database
+                            .rpc("get_active_hot_zones")
+                            .execute()
+                        let zoneDTOs = try decoder.decode([HotZoneDTO].self, from: zoneResponse.data)
+                        self.hotZones = zoneDTOs.map { dto in
+                            HotZone(
+                                name: dto.name,
+                                coordinate: CLLocationCoordinate2D(latitude: dto.latitude, longitude: dto.longitude),
+                                intensity: dto.intensity,
+                                trendingCount: dto.trending_count,
+                                color: Color(hex: dto.color),
+                                controller: dto.controller_handle == "NO_OVERLORD" ? nil : dto.controller_handle
+                            )
+                        }
+                        
+                        let dominanceResponse = try await client.database
+                            .rpc("get_country_dominance")
+                            .execute()
+                        let dominanceDTOs = try decoder.decode([CountryDominanceDTO].self, from: dominanceResponse.data)
+                        self.countryDominance = dominanceDTOs.map { dto in
+                            CountryDominance(
+                                country: dto.country_code,
+                                coordinate: CLLocationCoordinate2D(latitude: dto.latitude, longitude: dto.longitude),
+                                controller: dto.controller_handle,
+                                dominanceScore: dto.dominance_score,
+                                flagEmoji: dto.flag_emoji
+                            )
+                        }
+                    } catch {
+                        print("Territory RPC Error: \(error)")
+                    }
                     
                     // v3 'Own Your Block' Logic (Check if user is top creator in the view)
                     if let userProfile = ProfileManager.shared.currentUser,
@@ -1417,6 +1454,34 @@ class EyeWorldViewModel: ObservableObject {
         } catch {
             print("Leaderboard Fetch Error: \(error)")
         }
+    }
+}
+
+// MARK: - Color Extension
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
     }
 }
 
