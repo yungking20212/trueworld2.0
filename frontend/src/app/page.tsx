@@ -75,29 +75,33 @@ export default function Home() {
   // LOGGED IN: High-Fidelity App Feed
   if (session) {
     return (
-      <main className="h-screen w-full bg-black overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
-        {videos.length > 0 ? (
-          videos.map((video) => (
-            <VideoCard key={video.id} video={video} />
-          ))
-        ) : (
-          <div className="h-screen w-full flex flex-col items-center justify-center text-white gap-4 italic opacity-30">
-            <span>NO_BROADCASTS_DETECTED</span>
-            <button onClick={() => router.push("/auth")} className="text-xs uppercase font-bold tracking-widest border border-white/20 px-6 py-2 rounded-full">Refresh Node</button>
-          </div>
-        )}
+      <main className="h-screen w-full bg-black overflow-hidden relative">
+        <div className="h-full w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide">
+          {videos.length > 0 ? (
+            videos.map((video) => (
+              <VideoCard key={video.id} video={video} />
+            ))
+          ) : (
+            <div className="h-screen w-full flex flex-col items-center justify-center text-white gap-4 italic opacity-30">
+              <span>NO_BROADCASTS_DETECTED</span>
+              <button onClick={() => router.push("/auth")} className="text-xs uppercase font-bold tracking-widest border border-white/20 px-6 py-2 rounded-full">Refresh Node</button>
+            </div>
+          )}
+        </div>
 
-        {/* Navigation Sidebar (Simulated App Style) */}
-        <div className="fixed right-6 top-1/2 -translate-y-1/2 flex flex-col gap-8 z-50 pointer-events-none">
-          <div className="w-12 h-12 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl pointer-events-auto cursor-pointer hover:bg-white/10 transition-all">
-            <span className="text-xl">🗺️</span>
+        {/* Neural Navigation Bar (Bottom Center) */}
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-2 bg-zinc-900/60 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          <NavButton icon="🏠" label="HOME" active onClick={() => { }} />
+          <NavButton icon="🌍" label="EYE" onClick={() => { }} />
+          <div className="relative group mx-2">
+            <div className="absolute inset-0 bg-red-600 rounded-2xl blur-lg opacity-40 group-hover:opacity-60 transition-opacity"></div>
+            <button className="relative w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-xl active:scale-95 transition-all">
+              <span className="text-2xl">➕</span>
+              <div className="absolute -top-1 -right-1 bg-white text-[8px] font-black text-black px-1.5 py-0.5 rounded-md italic">AI</div>
+            </button>
           </div>
-          <div className="w-12 h-12 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl pointer-events-auto cursor-pointer hover:bg-white/10 transition-all">
-            <span className="text-xl">👁️</span>
-          </div>
-          <div onClick={() => router.push("/auth")} className="w-12 h-12 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl pointer-events-auto cursor-pointer hover:bg-white/10 transition-all">
-            <span className="text-xl text-red-500">⚙️</span>
-          </div>
+          <NavButton icon="🔔" label="NOTIF" onClick={() => { }} />
+          <NavButton icon="👤" label="PROFILE" onClick={() => router.push("/auth")} />
         </div>
       </main>
     );
@@ -188,6 +192,19 @@ export default function Home() {
   );
 }
 
+function NavButton({ icon, label, active, onClick }: { icon: string; label: string; active?: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-14 h-14 flex flex-col items-center justify-center rounded-2xl transition-all ${active ? "bg-white/10 text-white" : "text-white/40 hover:text-white hover:bg-white/5"}`}
+    >
+      <span className="text-xl">{icon}</span>
+      <span className="text-[8px] font-black tracking-widest mt-1 italic leading-none">{label}</span>
+      {active && <div className="mt-1 h-0.5 w-4 bg-red-600 rounded-full"></div>}
+    </button>
+  );
+}
+
 function VideoCard({ video }: { video: Video }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -232,64 +249,68 @@ function VideoCard({ video }: { video: Video }) {
         onClick={togglePlay}
       />
 
-      {/* High-Fidelity App Overlay (Matching Video exactly) */}
-      <div className="absolute inset-x-0 bottom-0 p-8 flex justify-between items-end bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+      {/* High-Fidelity App Overlay */}
+      <div className="absolute inset-x-0 bottom-0 p-8 pb-32 flex justify-between items-end bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none z-10">
         <div className="space-y-4 max-w-[70%]">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center">
-              <span className="text-[10px]">👤</span>
+            <div className="w-10 h-10 rounded-2xl bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg">
+              <span className="text-sm">👤</span>
             </div>
-            <h3 className="font-black text-lg text-white italic tracking-tight uppercase">@{video.username}</h3>
+            <h3 className="font-black text-xl text-white italic tracking-tight uppercase">@{video.username}</h3>
           </div>
-          <p className="text-sm text-white/80 font-medium leading-relaxed line-clamp-2">{video.description}</p>
-          <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md border border-white/5 rounded-full px-4 py-2 w-fit">
-            <span className="text-sm animate-pulse">🎵</span>
-            <span className="text-[10px] font-black text-white italic uppercase tracking-wider">{video.music_title || "Original Audio"}</span>
+          <p className="text-sm text-white/80 font-medium leading-relaxed line-clamp-2 max-w-sm">{video.description}</p>
+          <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-5 py-2.5 w-fit">
+            <div className="w-6 h-6 rounded-full bg-red-600/20 flex items-center justify-center animate-spin-slow">
+              <span className="text-[10px]">🎵</span>
+            </div>
+            <span className="text-[10px] font-black text-white italic uppercase tracking-widest">{video.music_title || "Original Audio"}</span>
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 items-center flex-shrink-0 pointer-events-auto">
+        <div className="flex flex-col gap-8 items-center flex-shrink-0 pointer-events-auto">
           <div className="flex flex-col items-center group cursor-pointer">
-            <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-red-600/30 group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 bg-red-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-red-600/30 group-hover:scale-110 active:scale-95 transition-all">
               <span className="text-2xl">❤️</span>
             </div>
-            <span className="text-[10px] font-black text-white mt-2 italic">{video.likes}</span>
+            <span className="text-[10px] font-black text-white mt-3 italic tracking-widest">{video.likes}</span>
           </div>
 
           <div className="flex flex-col items-center group cursor-pointer">
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl group-hover:bg-white/20 transition-all group-hover:scale-110">
+            <div className="w-14 h-14 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl group-hover:bg-white/10 group-hover:scale-110 active:scale-95 transition-all">
               <span className="text-2xl">💬</span>
             </div>
-            <span className="text-[10px] font-black text-white mt-2 italic">{video.comments}</span>
+            <span className="text-[10px] font-black text-white mt-3 italic tracking-widest">{video.comments}</span>
           </div>
 
           <div className="flex flex-col items-center group cursor-pointer">
-            <div className="w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl group-hover:bg-white/20 transition-all group-hover:scale-110">
+            <div className="w-14 h-14 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl group-hover:bg-white/10 group-hover:scale-110 active:scale-95 transition-all">
               <span className="text-2xl">🔗</span>
             </div>
-            <span className="text-[10px] font-black text-white mt-2 italic">{video.shares}</span>
+            <span className="text-[10px] font-black text-white mt-3 italic tracking-widest">{video.shares}</span>
           </div>
 
-          {/* Rotating Dynamic Element */}
-          <div className="w-12 h-12 rounded-full border-2 border-white/20 p-1 animate-spin-slow">
-            <div className="w-full h-full bg-zinc-800 rounded-full border border-white/10 flex items-center justify-center overflow-hidden">
-              <div className="w-4 h-4 bg-white/20 rounded-full blur-[2px]"></div>
+          {/* Rotating Vinyl/NFT Element */}
+          <div className="w-14 h-14 rounded-full border-2 border-white/5 p-1 animate-spin-slow shadow-xl">
+            <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-black rounded-full border border-white/10 flex items-center justify-center overflow-hidden">
+              <div className="w-6 h-6 bg-white/10 rounded-full blur-[4px]"></div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Top Banner (Neural Network Status) */}
-      <div className="absolute top-0 inset-x-0 p-8 flex justify-between items-start pointer-events-none z-20">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-black text-white/40 tracking-[0.5em] uppercase italic">Neural Network</span>
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-[10px] font-black text-white tracking-widest uppercase italic">LIVE_FEED</span>
+      {/* Top Protocol Status Layer */}
+      <div className="absolute top-0 inset-x-0 p-10 flex justify-between items-start pointer-events-none z-20">
+        <div className="space-y-1">
+          <span className="text-[9px] font-black text-white/30 tracking-[0.5em] uppercase italic bg-black/40 backdrop-blur-xl px-3 py-1 rounded-full border border-white/5">Neural Network</span>
+          <div className="flex items-center gap-2 pl-3">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+            <span className="text-[9px] font-black text-white tracking-[0.2em] uppercase italic">LIVE_SATELLITE_FEED</span>
           </div>
         </div>
-        <div className="w-10 h-10 border border-white/20 rounded-xl flex items-center justify-center backdrop-blur-md">
-          <span className="text-white text-xs">🔔</span>
+        <div className="group pointer-events-auto cursor-pointer">
+          <div className="w-12 h-12 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl hover:bg-white/10 transition-all">
+            <span className="text-white text-lg">🔔</span>
+          </div>
         </div>
       </div>
     </div>

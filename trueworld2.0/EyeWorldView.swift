@@ -94,6 +94,10 @@ struct EyeWorldView: View {
                 SpaceNoiseManager.shared.updateSpaceAmbient(zoomLevel: context.region.span.latitudeDelta)
             }
             
+            // v3 Neural Layer: Scanlines & HUD Corners
+            HUDOverlay(isAiScanning: isAiScanning, aiStatus: aiStatus)
+                .allowsHitTesting(false)
+            
             if !uiState.isEyeWorldUiHidden {
                 // Top Layer: Map Filters
                 VStack {
@@ -278,7 +282,19 @@ struct EyeWorldView: View {
                 }
                 Spacer()
             }
-
+            
+            // v3 Neural User Badge (Top Right)
+            VStack {
+                HStack {
+                    Spacer()
+                    if let user = ProfileManager.shared.currentUser {
+                        NeuralUserBadge(avatarUrl: user.avatarURL, username: user.username ?? "NODE")
+                            .padding(.top, 110)
+                            .padding(.trailing, 16)
+                    }
+                }
+                Spacer()
+            }
         }
         .ignoresSafeArea() // Ensure ZStack itself spans the entire screen
         .task {
@@ -353,6 +369,38 @@ struct EyeWorldView: View {
     private func triggerHaptic(style: UIImpactFeedbackGenerator.FeedbackStyle) {
         let generator = UIImpactFeedbackGenerator(style: style)
         generator.impactOccurred()
+    }
+}
+
+struct NeuralUserBadge: View {
+    let avatarUrl: String?
+    let username: String
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            // Pink Status Dot
+            Circle()
+                .fill(Color.pink)
+                .frame(width: 4, height: 4)
+                .shadow(color: .pink, radius: 4)
+            
+            ZStack(alignment: .bottomTrailing) {
+                AppAvatar(url: avatarUrl, size: 48)
+                    .clipShape(Circle())
+                    .overlay(Circle().stroke(Color.white.opacity(0.1), lineWidth: 1))
+                
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 12, height: 12)
+                    .overlay(Circle().stroke(Color.black, lineWidth: 2))
+                    .shadow(color: .green, radius: 4)
+            }
+        }
+        .padding(.vertical, 16)
+        .padding(.horizontal, 10)
+        .background(.ultraThinMaterial)
+        .cornerRadius(30)
+        .overlay(RoundedRectangle(cornerRadius: 30).stroke(Color.white.opacity(0.1), lineWidth: 1))
     }
 }
 
@@ -446,6 +494,16 @@ struct VideoMapAnchor: View {
             Rectangle()
                 .fill(markerColor)
                 .frame(width: 2, height: 10)
+            
+            // Label
+            Text(marker.title.uppercased())
+                .font(.system(size: 8, weight: .black, design: .monospaced))
+                .foregroundColor(.white)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(Color.black.opacity(0.6))
+                .cornerRadius(4)
+                .offset(y: 4)
         }
         .onAppear {
             withAnimation(.easeOut(duration: 1.5).repeatForever(autoreverses: false)) {
@@ -615,12 +673,12 @@ struct HUDPane: View {
     let activeScanners: Int
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 8) {
                 Image(systemName: "cpu.fill")
-                    .font(.system(size: 8))
-                Text("SYSTEM_BOOT_v1.0.4")
-                    .font(.system(size: 7, weight: .black, design: .monospaced))
+                    .font(.system(size: 10))
+                Text("EYE WORLD v3.0.0_NEXTGEN")
+                    .font(.system(size: 9, weight: .black, design: .monospaced))
             }
             .foregroundColor(.cyan)
             
@@ -1205,29 +1263,46 @@ class EyeWorldViewModel: ObservableObject {
                             .rpc("get_active_hot_zones")
                             .execute()
                         let zoneDTOs = try decoder.decode([HotZoneDTO].self, from: zoneResponse.data)
-                        self.hotZones = zoneDTOs.map { dto in
-                            HotZone(
-                                name: dto.name,
-                                coordinate: CLLocationCoordinate2D(latitude: dto.latitude, longitude: dto.longitude),
-                                intensity: dto.intensity,
-                                trendingCount: dto.trending_count,
-                                color: Color(hex: dto.color),
-                                controller: dto.controller_handle == "NO_OVERLORD" ? nil : dto.controller_handle
-                            )
+                        
+                        // Seed simulations if DB is empty to maintain v3_NEXTGEN aesthetics
+                        if zoneDTOs.isEmpty {
+                            self.hotZones = [
+                                HotZone(name: "NYC_CORE", coordinate: CLLocationCoordinate2D(latitude: 40.7128, longitude: -74.0060), intensity: 0.9, trendingCount: 154, color: .pink, controller: "trueworld"),
+                                HotZone(name: "TOKYO_CENTER", coordinate: CLLocationCoordinate2D(latitude: 35.6762, longitude: 139.6503), intensity: 0.8, trendingCount: 98, color: .cyan, controller: "razor_crew")
+                            ]
+                        } else {
+                            self.hotZones = zoneDTOs.map { dto in
+                                HotZone(
+                                    name: dto.name,
+                                    coordinate: CLLocationCoordinate2D(latitude: dto.latitude, longitude: dto.longitude),
+                                    intensity: dto.intensity,
+                                    trendingCount: dto.trending_count,
+                                    color: Color(hex: dto.color),
+                                    controller: dto.controller_handle == "NO_OVERLORD" ? nil : dto.controller_handle
+                                )
+                            }
                         }
                         
                         let dominanceResponse = try await client.database
                             .rpc("get_country_dominance")
                             .execute()
                         let dominanceDTOs = try decoder.decode([CountryDominanceDTO].self, from: dominanceResponse.data)
-                        self.countryDominance = dominanceDTOs.map { dto in
-                            CountryDominance(
-                                country: dto.country_code,
-                                coordinate: CLLocationCoordinate2D(latitude: dto.latitude, longitude: dto.longitude),
-                                controller: dto.controller_handle,
-                                dominanceScore: dto.dominance_score,
-                                flagEmoji: dto.flag_emoji
-                            )
+                        
+                        if dominanceDTOs.isEmpty {
+                            self.countryDominance = [
+                                CountryDominance(country: "USA", coordinate: CLLocationCoordinate2D(latitude: 37.0902, longitude: -95.7129), controller: "trueworld", dominanceScore: 0.95, flagEmoji: "🇺🇸"),
+                                CountryDominance(country: "JAPAN", coordinate: CLLocationCoordinate2D(latitude: 36.2048, longitude: 138.2529), controller: "neural_ghost", dominanceScore: 0.88, flagEmoji: "🇯🇵")
+                            ]
+                        } else {
+                            self.countryDominance = dominanceDTOs.map { dto in
+                                CountryDominance(
+                                    country: dto.country_code,
+                                    coordinate: CLLocationCoordinate2D(latitude: dto.latitude, longitude: dto.longitude),
+                                    controller: dto.controller_handle,
+                                    dominanceScore: dto.dominance_score,
+                                    flagEmoji: dto.flag_emoji
+                                )
+                            }
                         }
                     } catch {
                         print("Territory RPC Error: \(error)")
