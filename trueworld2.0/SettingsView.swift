@@ -131,7 +131,28 @@ struct SettingsView: View {
                                 }
                             }
                             
-                            // 5. Authentication
+                            // 5. System & Neural Network Operations
+                            SettingsSection(title: "Neural Network Operations") {
+                                SettingsRow(
+                                    icon: "antenna.radiowaves.left.and.right",
+                                    title: "Network Status",
+                                    subtitle: viewModel.isLoading ? "SYNCHRONIZING..." : "OPERATIONAL",
+                                    statusColor: .green,
+                                    showChevron: false
+                                )
+                                
+                                Divider().background(Color.white.opacity(0.1)).padding(.leading, 56)
+                                
+                                SettingsRow(
+                                    icon: "cpu.fill",
+                                    title: "Neural Core V2.4",
+                                    subtitle: "LATENCY: 24MS",
+                                    statusColor: .cyan,
+                                    showChevron: false
+                                )
+                            }
+                            
+                            // 6. Authentication
                             logoutButton
                             
                             VStack(spacing: 4) {
