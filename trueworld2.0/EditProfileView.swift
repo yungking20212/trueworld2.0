@@ -34,7 +34,7 @@ struct EditProfileView: View {
                     }
                 }
                 .padding()
-                .background(.black.opacity(0.3))
+                .background(Color.black.opacity(0.3))
                 
                 ScrollView {
                     VStack(spacing: 30) {

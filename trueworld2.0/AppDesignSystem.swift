@@ -2,15 +2,15 @@ import SwiftUI
 
 struct AppDesignSystem {
     struct Colors {
-        static let primaryGradient = LinearGradient(
+        static let primaryGradient: LinearGradient = LinearGradient(
             gradient: Gradient(colors: [Color(hex: "FF0080"), Color(hex: "7928CA")]),
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
         
-        static let vibrantAccent = Color(hex: "00F2FE")
-        static let vibrantPink = Color(hex: "FF0080")
-        static let vibrantBlue = Color(hex: "00F2FE")
+        static let vibrantAccent: Color = Color(hex: "00F2FE")
+        static let vibrantPink: Color = Color(hex: "FF0080")
+        static let vibrantBlue: Color = Color(hex: "00F2FE")
         static let glassBackground = Color.white.opacity(0.12)
         static let glassBorder = Color.white.opacity(0.25)
         
@@ -20,7 +20,7 @@ struct AppDesignSystem {
             endPoint: .bottom
         )
         
-        static let vantageGlow = Color(hex: "7928CA").opacity(0.3)
+        static let vantageGlow: Color = Color(hex: "7928CA").opacity(0.3)
     }
     
     struct Typography {
