@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
@@ -30,42 +30,73 @@ export default function Home() {
   const [regMessage, setRegMessage] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    // Robust Auth Listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setSession(session);
-      if (session) {
-        fetchVideos();
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Initial Session Check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        fetchVideos();
-        fetchUserProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+  const fetchVideos = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.from("videos").select("*").limit(10);
+      if (!error) setVideos(data || []);
+    } catch (err) {
+      console.error("Neural Video Fetch Fail:", err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchVideos = async () => {
-    const { data, error } = await supabase.from("videos").select("*").limit(10);
-    if (!error) setVideos(data || []);
-    setLoading(false);
-  };
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
+      if (!error) setUserProfile(data);
+    } catch (err) {
+      console.error("Profile Link Fail:", err);
+    }
+  }, []);
 
-  const fetchUserProfile = async (userId: string) => {
-    const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
-    if (!error) setUserProfile(data);
-  };
+  useEffect(() => {
+    let mounted = true;
+
+    async function checkSession() {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (mounted) {
+          setSession(currentSession);
+          if (currentSession) {
+            await Promise.all([
+              fetchVideos(),
+              fetchUserProfile(currentSession.user.id)
+            ]);
+          } else {
+            setLoading(false);
+          }
+        }
+      } catch (err) {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    checkSession();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (mounted) {
+        setSession(newSession);
+        if (newSession) {
+          fetchVideos();
+          fetchUserProfile(newSession.user.id);
+        } else {
+          setLoading(false);
+        }
+      }
+    });
+
+    // Failsafe: Force stop loading after 8s
+    const failsafe = setTimeout(() => {
+      if (mounted) setLoading(false);
+    }, 8000);
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+      clearTimeout(failsafe);
+    };
+  }, [fetchVideos, fetchUserProfile]);
 
   const handlePreRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,9 +117,18 @@ export default function Home() {
   if (loading) {
     return (
       <div className="h-screen w-full bg-black flex items-center justify-center">
-        <div className="animate-pulse flex flex-col items-center gap-4">
-          <div className="h-12 w-12 bg-red-600 rounded-full blur-xl opacity-50"></div>
-          <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase italic">Initializing Neural Link...</span>
+        <div className="animate-pulse flex flex-col items-center gap-6">
+          <div className="h-16 w-16 bg-red-600 rounded-full blur-2xl opacity-40 animate-pulse"></div>
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-[10px] font-black tracking-[0.5em] text-white uppercase italic">Initialising Neural Link...</span>
+            <span className="text-[8px] font-bold text-white/20 uppercase tracking-widest italic">Scanning Planetary Nodes</span>
+          </div>
+          <button
+            onClick={() => setLoading(false)}
+            className="mt-8 text-[8px] font-black text-red-600/40 hover:text-red-600 uppercase tracking-widest border border-red-600/10 px-4 py-2 rounded-full transition-all"
+          >
+            Bypass Synchronization
+          </button>
         </div>
       </div>
     );
